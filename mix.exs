@@ -1,4 +1,4 @@
-defmodule SnmpMibEx.Mixfile do
+defmodule SNMPMIB.Mixfile do
   use Mix.Project
 
   def project do
