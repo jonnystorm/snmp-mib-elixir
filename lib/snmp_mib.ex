@@ -38,12 +38,17 @@ defmodule SNMPMIB do
   end
 
   @spec object(String.t, asn1_type, String.t | number) :: Object.t
+  def object(oid, type, value) when is_binary(value) and type == :integer do
+    object(oid, type, String.to_integer(value))
+  end
+  def object(oid, type, value) when is_binary(oid) do
+    object(string_oid_to_list(oid), type, value)
+  end
+  def object(oid, type, value) when is_atom(type) do
+    object(oid, type_to_asn1_tag(type), value)
+  end
   def object(oid, type, value) do
-    %Object{
-      oid: string_oid_to_list(oid),
-      type: type_to_asn1_tag(type),
-      value: value
-    }
+    %Object{oid: oid, type: type, value: value}
   end
 
   @spec index(Object.t, pos_integer) :: Object.t
