@@ -85,6 +85,7 @@ defmodule SNMPMIB do
       integer: 2,
       bit_string: 3,
       octet_string: 4, string: 4,
+      ipaddress: 4,  # IpAddress type obsoleted by RFC2851
       null: 5,
       object_identifier: 6, oid: 6,
       real: 9,
