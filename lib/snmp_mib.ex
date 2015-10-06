@@ -1,3 +1,8 @@
+# Copyright © 2015 Jonathan Storm <the.jonathan.storm@gmail.com>
+# This work is free. You can redistribute it and/or modify it under the
+# terms of the Do What The Fuck You Want To Public License, Version 2,
+# as published by Sam Hocevar. See the COPYING.WTFPL file for more details.
+
 defmodule SNMPMIB do
   @type asn1_tag :: 0 | 1..6 | 9..10
   @type asn1_type :: :any|:boolean|:integer|:bit_string|:octet_string|:string|:null|:object_identifier|:real|:enumerated
@@ -64,9 +69,9 @@ defmodule SNMPMIB do
 
   def string_oid_to_list(string_oid) do
     string_oid
-      |> String.strip(?.)
-      |> :binary.split(".", [:global])
-      |> Enum.map(&(String.to_integer &1))
+    |> String.strip(?.)
+    |> :binary.split(".", [:global])
+    |> Enum.map(&String.to_integer(&1))
   end
 
   def asn1_tag_to_type_char(type) do
