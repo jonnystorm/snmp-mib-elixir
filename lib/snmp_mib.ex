@@ -20,7 +20,7 @@ defmodule SNMPMIB do
       object.oid
     end
 
-    def oid(object, new_value) when is_list(new_value) do
+    def oid(object, new_value) when is_list new_value do
       %Object{object|oid: new_value}
     end
 
@@ -28,7 +28,7 @@ defmodule SNMPMIB do
       object.type
     end
 
-    def type(object, new_type) when is_atom(new_type) do
+    def type(object, new_type) when is_atom new_type do
       %Object{object|type: new_type}
     end
     
@@ -38,29 +38,30 @@ defmodule SNMPMIB do
 
     def value(object, new_value)
         when is_number(new_value) or is_binary(new_value) do
-      %Object{object|value: new_value}
+
+      %Object{object | value: new_value}
     end
   end
 
   @spec object(String.t, asn1_type, String.t | number) :: Object.t
   def object(oid, type, value) when is_binary(value) and type == :integer do
-    object(oid, type, String.to_integer(value))
+    object oid, type, String.to_integer(value)
   end
-  def object(oid, type, value) when is_binary(oid) do
-    object(string_oid_to_list(oid), type, value)
+  def object(oid, type, value) when is_binary oid do
+    object string_oid_to_list(oid), type, value
   end
-  def object(oid, type, value) when is_atom(type) do
-    object(oid, type_to_asn1_tag(type), value)
+  def object(oid, type, value) when is_atom type do
+    object oid, type_to_asn1_tag(type), value
   end
   def object(oid, type, value) do
     %Object{oid: oid, type: type, value: value}
   end
 
   @spec index(Object.t, pos_integer) :: Object.t
-  def index(object, index) when is_integer(index) do
+  def index(object, index) when is_integer index do
     indexed_oid = Object.oid(object) ++ [index]
 
-    Object.oid(object, indexed_oid)
+    Object.oid object, indexed_oid
   end
 
   def list_oid_to_string(list_oid) do
@@ -69,14 +70,13 @@ defmodule SNMPMIB do
 
   def string_oid_to_list(string_oid) do
     string_oid
-    |> String.strip(?.)
-    |> :binary.split(".", [:global])
-    |> Enum.map(&String.to_integer(&1))
+      |> String.strip(?.)
+      |> :binary.split(".", [:global])
+      |> Enum.map(&String.to_integer(&1))
   end
 
   def asn1_tag_to_type_char(type) do
-    %{
-      0 => "=",
+    %{0 => "=",
       1 => "i",
       2 => "i",
       3 => "s",
@@ -89,8 +89,7 @@ defmodule SNMPMIB do
   end
 
   def type_to_asn1_tag(type) do
-    %{
-      any: 0,
+    %{any: 0,
       boolean: 1,
       integer: 2,
       bit_string: 3,
@@ -108,8 +107,7 @@ defimpl String.Chars, for: SNMPMIB.Object do
   import Kernel, except: [to_string: 1]
 
   def to_string(object) do
-    [
-      object |> SNMPMIB.Object.oid |> SNMPMIB.list_oid_to_string,
+    [ object |> SNMPMIB.Object.oid |> SNMPMIB.list_oid_to_string,
       object |> SNMPMIB.Object.type |> SNMPMIB.asn1_tag_to_type_char,
       object |> SNMPMIB.Object.value
     ] |> Enum.join " "
