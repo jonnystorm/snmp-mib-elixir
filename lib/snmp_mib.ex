@@ -91,9 +91,9 @@ defmodule SNMPMIB do
   def type_to_asn1_tag(type) do
     %{any: 0,
       boolean: 1,
-      integer: 2, counter: 2, counter32: 2, counter64: 2, gauge32: 2, gauge64: 2,
+      integer: 2, counter: 2, counter32: 2, counter64: 2, gauge32: 2, gauge64: 2, timeticks: 2,
       bit_string: 3,
-      octet_string: 4, string: 4, timeticks: 4, hex_string: 4, network_address: 4,
+      octet_string: 4, string: 4, hex_string: 4, network_address: 4,
       ipaddress: 4,  # IpAddress type obsoleted by RFC2851
       null: 5,
       object_identifier: 6, oid: 6,
