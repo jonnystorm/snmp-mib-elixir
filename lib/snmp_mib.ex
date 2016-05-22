@@ -21,7 +21,7 @@ defmodule SNMPMIB do
     end
 
     def oid(object, new_value) when is_list new_value do
-      %Object{object|oid: new_value}
+      %Object{object | oid: new_value}
     end
 
     def type(object) do
@@ -29,7 +29,7 @@ defmodule SNMPMIB do
     end
 
     def type(object, new_type) when is_atom new_type do
-      %Object{object|type: new_type}
+      %Object{object | type: new_type}
     end
     
     def value(object) do
@@ -37,13 +37,14 @@ defmodule SNMPMIB do
     end
 
     def value(object, new_value)
-        when is_number(new_value) or is_binary(new_value) do
+        when is_number(new_value)
+          or is_binary(new_value) do
 
       %Object{object | value: new_value}
     end
   end
 
-  @spec object(String.t, asn1_type, String.t | number) :: Object.t
+  @spec object(String.t | [non_neg_integer], asn1_type | non_neg_integer, String.t | number) :: Object.t
   def object(oid, type, value) when is_binary(value) and type == :integer do
     object oid, type, String.to_integer(value)
   end
@@ -65,7 +66,7 @@ defmodule SNMPMIB do
   end
 
   def list_oid_to_string(list_oid) do
-    list_oid |> Enum.join(".")
+    Enum.join list_oid, "."
   end
 
   def string_oid_to_list(string_oid) do
@@ -110,6 +111,7 @@ defimpl String.Chars, for: SNMPMIB.Object do
     [ object |> SNMPMIB.Object.oid |> SNMPMIB.list_oid_to_string,
       object |> SNMPMIB.Object.type |> SNMPMIB.asn1_tag_to_type_char,
       object |> SNMPMIB.Object.value
-    ] |> Enum.join " "
+
+    ] |> Enum.join(" ")
   end
 end
