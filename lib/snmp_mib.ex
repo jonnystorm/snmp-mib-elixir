@@ -4,10 +4,28 @@
 # as published by Sam Hocevar. See the COPYING.WTFPL file for more details.
 
 defmodule SNMPMIB do
+  @moduledoc """
+  Provides SNMP object struct and supporting functions.
+  """
+
   @type asn1_tag :: 0 | 1..6 | 9..10
-  @type asn1_type :: :any|:boolean|:integer|:bit_string|:octet_string|:string|:null|:object_identifier|:real|:enumerated
+  @type asn1_type ::
+      :any
+    | :boolean
+    | :integer
+    | :bit_string
+    | :octet_string
+    | :string
+    | :null
+    | :object_identifier
+    | :real
+    | :enumerated
 
   defmodule Object do
+    @moduledoc """
+    Defines struct and interface for storing and manipulating SNMP OID, type,
+    and value data.
+    """
     defstruct oid: nil, type: nil, value: nil
 
     @type t :: %Object{
@@ -16,26 +34,44 @@ defmodule SNMPMIB do
       value: String.t | number
     }
     
+    @doc """
+    Returns OID of `object`.
+    """
     def oid(object) do
       object.oid
     end
 
+    @doc """
+    Returns copy of `object` with OID of `new_value`.
+    """
     def oid(object, new_value) when is_list new_value do
       %Object{object | oid: new_value}
     end
 
+    @doc """
+    Returns type of `object`.
+    """
     def type(object) do
       object.type
     end
 
+    @doc """
+    Returns copy of `object` with type of `new_type`.
+    """
     def type(object, new_type) when is_atom new_type do
       %Object{object | type: new_type}
     end
     
+    @doc """
+    Returns value of `object`.
+    """
     def value(object) do
       object.value
     end
 
+    @doc """
+    Returns copy of `object` with value of `new_value`.
+    """
     def value(object, new_value)
         when is_number(new_value)
           or is_binary(new_value) do
@@ -44,7 +80,11 @@ defmodule SNMPMIB do
     end
   end
 
+  @doc """
+  Constructs new `NetSNMP.Object` struct.
+  """
   @spec object(String.t | [non_neg_integer], asn1_type | non_neg_integer, String.t | number) :: Object.t
+
   def object(oid, type, value) when is_binary(value) and type == :integer do
     object oid, type, String.to_integer(value)
   end
@@ -58,16 +98,30 @@ defmodule SNMPMIB do
     %Object{oid: oid, type: type, value: value}
   end
 
-  @spec index(Object.t, pos_integer) :: Object.t
+  @doc """
+  Appends `index` to OID of `object`.
+  """
+  @spec index(Object.t, non_neg_integer) :: Object.t
+
   def index(object, index) when is_integer index do
     indexed_oid = Object.oid(object) ++ [index]
 
     Object.oid object, indexed_oid
   end
 
+  @doc """
+  Converts `list_oid` to dot-delimited string.
+  """
+  @spec list_oid_to_string([non_neg_integer]) :: String.t
+
   def list_oid_to_string(list_oid) do
     Enum.join list_oid, "."
   end
+
+  @doc """
+  Converts dot-delimited `string_oid` string to list.
+  """
+  @spec string_oid_to_list(String.t) :: [non_neg_integer]
 
   def string_oid_to_list(string_oid) do
     string_oid
@@ -76,6 +130,9 @@ defmodule SNMPMIB do
       |> Enum.map(&String.to_integer(&1))
   end
 
+  @doc """
+  Converts ASN.1 tag number to Net-SNMP type character.
+  """
   def asn1_tag_to_type_char(type) do
     %{0 => "=",
       1 => "i",
@@ -89,6 +146,9 @@ defmodule SNMPMIB do
     } |> Map.fetch!(type)
   end
 
+  @doc """
+  Converts Net-SNMP type name to ASN.1 tag number.
+  """
   def type_to_asn1_tag(type) do
     %{any: 0,
       boolean: 1,
