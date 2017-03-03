@@ -6,10 +6,10 @@ defmodule SNMPMIB.Mixfile do
       version: "0.0.3",
       name: "SNMPMIB",
       source_url: "https://github.com/jonnystorm/snmp-mib-elixir",
-      elixir: "~> 1.0",
+      elixir: "~> 1.4",
       build_embedded: Mix.env == :prod,
       start_permanent: Mix.env == :prod,
-      deps: deps,
+      deps: deps(),
       docs: [extras: ["README.md"]]
     ]
   end
@@ -26,7 +26,7 @@ defmodule SNMPMIB.Mixfile do
   end
 
   defp deps do
-    [ {:ex_doc, "~> 0.13", only: :dev}
+    [ {:ex_doc, "~> 0.15", only: :dev}
     ]
   end
 end
