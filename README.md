@@ -5,7 +5,7 @@ MIB modules for use with [net-snmp-elixir](https://github.com/jonnystorm/net-snm
 
 If you can, please consider contributing to
 [snmp-elixir](https://github.com/jonnystorm/snmp-elixir); we could be
-compiling MIBS instead of rewriting them.
+compiling MIBs instead of rewriting them.
 
 Modules made using [snmp-mib-elixir](https://github.com/jonnystorm/snmp-mib-elixir):
 * [cisco-config-copy-elixir](https://github.com/jonnystorm/cisco-config-copy-elixir)
