@@ -8,7 +8,7 @@ defmodule SNMPMIB do
   Provides SNMP object struct and supporting functions.
   """
 
-  @type asn1_tag :: 0 | 1..6 | 9..10
+  @type asn1_tag :: 0 | 1..6 | 9..11
   @type asn1_type ::
       :any
     | :boolean
@@ -20,6 +20,8 @@ defmodule SNMPMIB do
     | :object_identifier
     | :real
     | :enumerated
+    | :ipaddress # deprecared type obsoleted by RFC2851 - maps to asn1 "s" instead of "a" now
+    | :ipv4address # required for backwards compatibility to map to asn1 "a" e.g. Brocade Foundry/ICX switches
 
   defmodule Object do
     @moduledoc """
@@ -33,7 +35,7 @@ defmodule SNMPMIB do
       type: SNMPMIB.asn1_tag,
       value: String.t | number
     }
-    
+
     @doc """
     Returns OID of `object`.
     """
@@ -61,7 +63,7 @@ defmodule SNMPMIB do
     def type(object, new_type) when is_atom new_type do
       %Object{object | type: new_type}
     end
-    
+
     @doc """
     Returns value of `object`.
     """
@@ -142,7 +144,8 @@ defmodule SNMPMIB do
       5 => "=",
       6 => "o",
       9 => "d",
-      10 => "i"
+      10 => "i",
+      11 => "a" # backwards compatibility to asn1 "a" type :ipv4address type used by Brocade Foundry/ICX Switches
     } |> Map.fetch!(type)
   end
 
@@ -159,7 +162,8 @@ defmodule SNMPMIB do
       null: 5,
       object_identifier: 6, oid: 6,
       real: 9,
-      enumerated: 10
+      enuggmerated: 10,
+      ipv4address: 11 # backwards compatibility to asn1 "a" type :ipv4address type used by Brocade Foundry/ICX Switches
     } |> Map.fetch!(type)
   end
 end
