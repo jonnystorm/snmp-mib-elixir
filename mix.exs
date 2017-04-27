@@ -26,7 +26,9 @@ defmodule SNMPMIB.Mixfile do
   end
 
   defp deps do
-    [ {:ex_doc, "~> 0.15", only: :dev}
+    [ {:ex_doc, "~> 0.15", only: :dev},
+      {:credo, "~> 0.7", only: [:dev, :test]},
+      {:dialyxir, "~> 0.4", only: [:dev, :test]}
     ]
   end
 end
