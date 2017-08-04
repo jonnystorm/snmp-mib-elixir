@@ -1,7 +1,6 @@
-# Copyright © 2015 Jonathan Storm <the.jonathan.storm@gmail.com>
-# This work is free. You can redistribute it and/or modify it under the
-# terms of the Do What The Fuck You Want To Public License, Version 2,
-# as published by Sam Hocevar. See the COPYING.WTFPL file for more details.
+# This Source Code Form is subject to the terms of the Mozilla Public
+# License, v. 2.0. If a copy of the MPL was not distributed with this
+# file, You can obtain one at http://mozilla.org/MPL/2.0/.
 
 defmodule SNMPMIB do
   @moduledoc """
@@ -9,31 +8,42 @@ defmodule SNMPMIB do
   """
 
   @type asn1_tag :: 0 | 1..6 | 9..11
-  @type asn1_type ::
-      :any
-    | :boolean
-    | :integer
-    | :bit_string
-    | :octet_string
-    | :string
-    | :null
-    | :object_identifier
-    | :real
-    | :enumerated
-    | :ipaddress # deprecared type obsoleted by RFC2851 - maps to asn1 "s" instead of "a" now
-    | :ipv4address # required for backwards compatibility to map to asn1 "a" e.g. Brocade Foundry/ICX switches
+  @type asn1_type
+    :: :any
+     | :boolean
+     | :integer
+     | :bit_string
+     | :octet_string
+     | :string
+     | :null
+     | :object_identifier
+     | :real
+     | :enumerated
+     # Deprecated type obsoleted by RFC2851; maps to asn1
+     # "s" instead of "a" now
+     | :ipaddress
+     # Backwards compatibility for asn1 "a" (:ipv4address)
+     # type used by Brocade Foundry/ICX switches
+     | :ipv4address
+
+  @type oid :: [non_neg_integer]
+
+  @type object_value
+    :: String.t
+     | number
+     | nil
 
   defmodule Object do
     @moduledoc """
-    Defines struct and interface for storing and manipulating SNMP OID, type,
-    and value data.
+    Defines struct and interface for storing and
+    manipulating SNMP OID, type, and value data.
     """
-    defstruct oid: nil, type: nil, value: nil
+    defstruct [:oid, :type, :value]
 
     @type t :: %Object{
-      oid: [non_neg_integer],
-      type: SNMPMIB.asn1_tag,
-      value: String.t | number
+        oid: SNMPMIB.oid,
+       type: SNMPMIB.asn1_tag,
+      value: SNMPMIB.object_value
     }
 
     @doc """
@@ -76,8 +86,8 @@ defmodule SNMPMIB do
     """
     def value(object, new_value)
         when is_number(new_value)
-          or is_binary(new_value) do
-
+          or is_binary(new_value)
+    do
       %Object{object | value: new_value}
     end
   end
@@ -85,16 +95,22 @@ defmodule SNMPMIB do
   @doc """
   Constructs new `NetSNMP.Object` struct.
   """
-  @spec object(String.t | [non_neg_integer], asn1_type | non_neg_integer, String.t | number) :: Object.t
-
-  def object(oid, type, value) when is_binary(value) and type == :integer do
-    object oid, type, String.to_integer(value)
+  @spec object(
+    oid | String.t,
+    asn1_type | asn1_tag,
+    object_value
+  ) :: Object.t
+  def object(oid, type, value)
+      when is_binary(value)
+       and type == :integer
+  do
+    object(oid, type, String.to_integer(value))
   end
   def object(oid, type, value) when is_binary oid do
-    object string_oid_to_list(oid), type, value
+    object(string_oid_to_list(oid), type, value)
   end
   def object(oid, type, value) when is_atom type do
-    object oid, type_to_asn1_tag(type), value
+    object(oid, type_to_asn1_tag(type), value)
   end
   def object(oid, type, value) do
     %Object{oid: oid, type: type, value: value}
@@ -103,19 +119,19 @@ defmodule SNMPMIB do
   @doc """
   Appends `index` to OID of `object`.
   """
-  @spec index(Object.t, non_neg_integer) :: Object.t
-
+  @spec index(Object.t, non_neg_integer)
+    :: Object.t
   def index(object, index) when is_integer index do
     indexed_oid = Object.oid(object) ++ [index]
 
-    Object.oid object, indexed_oid
+    Object.oid(object, indexed_oid)
   end
 
   @doc """
   Converts `list_oid` to dot-delimited string.
   """
-  @spec list_oid_to_string([non_neg_integer]) :: String.t
-
+  @spec list_oid_to_string([non_neg_integer])
+    :: String.t
   def list_oid_to_string(list_oid) do
     Enum.join list_oid, "."
   end
@@ -123,29 +139,31 @@ defmodule SNMPMIB do
   @doc """
   Converts dot-delimited `string_oid` string to list.
   """
-  @spec string_oid_to_list(String.t) :: [non_neg_integer]
-
+  @spec string_oid_to_list(String.t)
+    :: [non_neg_integer]
   def string_oid_to_list(string_oid) do
     string_oid
-      |> String.strip(?.)
-      |> :binary.split(".", [:global])
-      |> Enum.map(&String.to_integer(&1))
+    |> String.trim(".")
+    |> :binary.split(".", [:global])
+    |> Enum.map(&String.to_integer(&1))
   end
 
   @doc """
   Converts ASN.1 tag number to Net-SNMP type character.
   """
   def asn1_tag_to_type_char(type) do
-    %{0 => "=",
-      1 => "i",
-      2 => "i",
-      3 => "s",
-      4 => "s",
-      5 => "=",
-      6 => "o",
-      9 => "d",
+    %{ 0 => "=",
+       1 => "i",
+       2 => "i",
+       3 => "s",
+       4 => "s",
+       5 => "=",
+       6 => "o",
+       9 => "d",
       10 => "i",
-      11 => "a" # backwards compatibility to asn1 "a" type :ipv4address type used by Brocade Foundry/ICX Switches
+      # Backwards compatibility for asn1 "a" (:ipv4address)
+      # type used by Brocade Foundry/ICX switches
+      11 => "a",
     } |> Map.fetch!(type)
   end
 
@@ -153,17 +171,30 @@ defmodule SNMPMIB do
   Converts Net-SNMP type name to ASN.1 tag number.
   """
   def type_to_asn1_tag(type) do
-    %{any: 0,
-      boolean: 1,
-      integer: 2, counter: 2, counter32: 2, counter64: 2, gauge32: 2, gauge64: 2, timeticks: 2,
-      bit_string: 3,
-      octet_string: 4, string: 4, hex_string: 4, network_address: 4,
-      ipaddress: 4,  # IpAddress type obsoleted by RFC2851
-      null: 5,
-      object_identifier: 6, oid: 6,
-      real: 9,
-      enuggmerated: 10,
-      ipv4address: 11 # backwards compatibility to asn1 "a" type :ipv4address type used by Brocade Foundry/ICX Switches
+    %{any:               0,
+      boolean:           1,
+      integer:           2,
+      counter:           2,
+      counter32:         2,
+      counter64:         2,
+      gauge32:           2,
+      gauge64:           2,
+      timeticks:         2,
+      bit_string:        3,
+      octet_string:      4,
+      string:            4,
+      hex_string:        4,
+      network_address:   4,
+      # IpAddress type obsoleted by RFC2851
+      ipaddress:         4,
+      null:              5,
+      object_identifier: 6,
+      oid:               6,
+      real:              9,
+      enumerated:       10,
+      # Backwards compatibility for asn1 "a" (:ipv4address)
+      # type used by Brocade Foundry/ICX switches
+      ipv4address:      11,
     } |> Map.fetch!(type)
   end
 end
@@ -172,10 +203,18 @@ defimpl String.Chars, for: SNMPMIB.Object do
   import Kernel, except: [to_string: 1]
 
   def to_string(object) do
-    [ object |> SNMPMIB.Object.oid |> SNMPMIB.list_oid_to_string,
-      object |> SNMPMIB.Object.type |> SNMPMIB.asn1_tag_to_type_char,
-      object |> SNMPMIB.Object.value
+    oid =
+      object
+      |> SNMPMIB.Object.oid
+      |> SNMPMIB.list_oid_to_string
 
-    ] |> Enum.join(" ")
+    type =
+      object
+      |> SNMPMIB.Object.type
+      |> SNMPMIB.asn1_tag_to_type_char
+
+    value = SNMPMIB.Object.value object
+
+    "#{oid} #{type} #{value}"
   end
 end
